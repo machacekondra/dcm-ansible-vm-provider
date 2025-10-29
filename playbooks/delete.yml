@@ -1,0 +1,13 @@
+---
+- name: Remove VM using KubeVirt
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - kubevirt.core
+
+  tasks:
+    - name: Remove Fedora VM
+      kubevirt.core.kubevirt_vm:
+        state: absent
+        name: demo-vm
+        namespace: default

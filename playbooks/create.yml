@@ -1,0 +1,52 @@
+---
+- name: Create a VM using KubeVirt
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - kubevirt.core
+
+  tasks:
+    - name: Create Fedora VM
+      kubevirt.core.kubevirt_vm:
+        state: present
+        name: demo-vm
+        namespace: default
+        running: true
+        data_volume_templates:
+          - metadata:
+              name: demo-vm-rootdisk
+            spec:
+              source:
+                registry:
+                  url: docker://quay.io/containerdisks/fedora:latest
+              pvc:
+                accessModes: ["ReadWriteOnce"]
+                resources:
+                  requests:
+                    storage: 10Gi
+        spec:
+          domain:
+            cpu:
+              cores: 2
+            resources:
+              requests:
+                memory: 2Gi
+            devices:
+              disks:
+                - name: rootdisk
+                  disk:
+                    bus: virtio
+                - name: cloudinitdisk
+                  disk:
+                    bus: virtio
+          volumes:
+            - name: rootdisk
+              dataVolume:
+                name: demo-vm-rootdisk
+            - name: cloudinitdisk
+              cloudInitNoCloud:
+                userData: |
+                  #cloud-config
+                  password: fedora
+                  chpasswd: { expire: False }
+                  ssh_pwauth: True
